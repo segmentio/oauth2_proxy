@@ -410,11 +410,6 @@ func (p *OAuthProxy) ManualSignIn(rw http.ResponseWriter, req *http.Request) (st
 }
 
 func (p *OAuthProxy) GetRedirect(req *http.Request) (redirect string, err error) {
-	if p.SkipProviderButton {
-		redirect = req.RequestURI
-		return
-	}
-
 	err = req.ParseForm()
 	if err != nil {
 		return
@@ -422,6 +417,14 @@ func (p *OAuthProxy) GetRedirect(req *http.Request) (redirect string, err error)
 
 	redirect = req.Form.Get("rd")
 	if redirect == "" || !strings.HasPrefix(redirect, "/") || strings.HasPrefix(redirect, "//") {
+		redirect = req.URL.RequestURI()
+	}
+
+	if req.Header.Get("X-Auth-Request-Redirect") != "" {
+		redirect = req.Header.Get("X-Auth-Request-Redirect")
+	}
+
+	if redirect == p.SignInPath || redirect == p.OAuthStartPath {
 		redirect = "/"
 	}
 
@@ -487,7 +490,11 @@ func (p *OAuthProxy) SignIn(rw http.ResponseWriter, req *http.Request) {
 		p.SaveSession(rw, req, session)
 		http.Redirect(rw, req, redirect, 302)
 	} else {
-		p.SignInPage(rw, req, 200)
+		if p.SkipProviderButton {
+			p.OAuthStart(rw, req)
+		} else {
+			p.SignInPage(rw, req, http.StatusOK)
+		}
 	}
 }
 
