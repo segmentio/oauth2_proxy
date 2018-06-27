@@ -2,6 +2,7 @@ package providers
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/bitly/oauth2_proxy/api"
@@ -57,6 +59,31 @@ func getOktaHeader(access_token string) http.Header {
 	return header
 }
 
+func emailFromOktaIdToken(idToken string) (string, error) {
+
+	// id_token is a base64 encode ID token payload
+	// https://developers.google.com/accounts/docs/OAuth2Login#obtainuserinfo
+	jwt := strings.Split(idToken, ".")
+	b, err := base64.RawURLEncoding.DecodeString(jwt[1])
+	if err != nil {
+		return "", err
+	}
+
+	var email struct {
+		Email string `json:"email"`
+	}
+	err = json.Unmarshal(b, &email)
+	if err != nil {
+		return "", err
+	}
+	if email.Email == "" {
+		return "", errors.New("Okta ID token missing email")
+	}
+
+	return email.Email, nil
+}
+
+/*
 func (p *OktaProvider) GetEmailAddress(s *SessionState) (string, error) {
 	req, err := http.NewRequest("GET",
 		p.ValidateURL.String(), nil)
@@ -72,6 +99,7 @@ func (p *OktaProvider) GetEmailAddress(s *SessionState) (string, error) {
 	}
 	return json.Get("email").String()
 }
+*/
 
 func (p *OktaProvider) GetUserName(s *SessionState) (string, error) {
 	req, err := http.NewRequest("GET",
@@ -140,10 +168,17 @@ func (p *OktaProvider) Redeem(redirectURL, code string) (s *SessionState, err er
 	if err != nil {
 		return
 	}
+	var email string
+	email, err = emailFromOktaIdToken(jsonResponse.IdToken)
+
+	if err != nil {
+		return
+	}
 	s = &SessionState{
 		AccessToken:  jsonResponse.AccessToken,
 		ExpiresOn:    time.Now().Add(time.Duration(jsonResponse.ExpiresIn) * time.Second).Truncate(time.Second),
 		RefreshToken: jsonResponse.RefreshToken,
+		Email:        email,
 	}
 	return
 }
