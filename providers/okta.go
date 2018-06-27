@@ -83,24 +83,6 @@ func emailFromOktaIdToken(idToken string) (string, error) {
 	return email.Email, nil
 }
 
-/*
-func (p *OktaProvider) GetEmailAddress(s *SessionState) (string, error) {
-	req, err := http.NewRequest("GET",
-		p.ValidateURL.String(), nil)
-	if err != nil {
-		log.Printf("failed building request %s", err)
-		return "", err
-	}
-	req.Header = getOktaHeader(s.AccessToken)
-	json, err := api.Request(req)
-	if err != nil {
-		log.Printf("failed making request %s", err)
-		return "", err
-	}
-	return json.Get("email").String()
-}
-*/
-
 func (p *OktaProvider) GetUserName(s *SessionState) (string, error) {
 	req, err := http.NewRequest("GET",
 		p.ValidateURL.String(), nil)
@@ -155,8 +137,6 @@ func (p *OktaProvider) Redeem(redirectURL, code string) (s *SessionState, err er
 		err = fmt.Errorf("got %d from %q %s", resp.StatusCode, p.RedeemURL.String(), body)
 		return
 	}
-
-	log.Printf("BODY custom redeem: %s", body)
 
 	var jsonResponse struct {
 		AccessToken  string `json:"access_token"`
