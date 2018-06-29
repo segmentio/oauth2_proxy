@@ -165,7 +165,7 @@ func (p *OktaProvider) Redeem(redirectURL, code string) (s *SessionState, err er
 
 func (p *OktaProvider) RefreshSessionIfNeeded(s *SessionState) (bool, error) {
 	//@todo: Remove from here before accepting PR. This is for local testing
-	if s == nil || s.ExpiresOn.After(time.Now().Add(time.Minute*59).Add(time.Second*50)) || s.RefreshToken == "" {
+	if s == nil || s.ExpiresOn.After(time.Now()) || s.RefreshToken == "" {
 		return false, nil
 	}
 
