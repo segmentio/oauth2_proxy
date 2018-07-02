@@ -6,6 +6,13 @@ jobs:
       - image: segment/circleci-golang:1.10
     steps:
       - checkout
+      - run:
+          command: |
+            TAG=`git rev-parse --short=7 HEAD`
+            EXISTING_IMAGE=e6feea0
+            docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/oauth2-proxy:$EXISTING_IMAGE
+            docker tag $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/oauth2-proxy:$EXISTING_IMAGE $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/oauth2-proxy:$TAG
+            docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/oauth2-proxy:$TAG
       - store_artifacts:
           path: .run
           destination: trebuchet
