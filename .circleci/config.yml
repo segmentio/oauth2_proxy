@@ -6,6 +6,9 @@ jobs:
       - image: segment/circleci-golang:1.10
     steps:
       - checkout
+      - store_artifacts:
+          path: .run
+          destination: trebuchet
 
 workflows:
   version: 2
