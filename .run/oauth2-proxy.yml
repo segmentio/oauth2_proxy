@@ -1,0 +1,83 @@
+name: oauth2-proxy
+
+container:
+  image: oauth2-proxy
+  repository: 528451384384.dkr.ecr.us-west-2.amazonaws.com
+  # cmd:
+  #   - /bin/oauth2-proxy
+
+resources:
+  cpu_shares: 103
+  mem_mb: 128
+
+## Uncomment if you need to expose a port (with a load balancer)
+## note: only one exposed port supported currently
+# expose:
+#   - name: http
+#     port: 3000
+#     proto: http
+#     health_check_path: /internal/health
+
+count:
+  min: 2
+  max: 2
+  #  canary: 1
+
+  ## Change policy to "cpu_mem" to scale on cpu and memory
+  autoscale_policy: "disabled"
+
+labels:
+  team: tooling
+  owner: nick@segment.com
+
+  ## Uncomment override if you need to specify your own task role
+  # Override::IAM::Role: oauth2-proxy-role
+
+  ## Uncomment override if you need to specify your ssl lb policy
+  # Override::SSL::Policy: ELBSecurityPolicy-TLS-1-2-2017-01
+
+  ## Uncomment and modify to deploy to a cluster other than megappol
+  # Override::ECS::Cluster: megapool
+
+  ## Uncomment to override default autoscaling thresholds
+  # Autoscale::CPU::Low: 70
+  # Autoscale::CPU::High: 90
+  # Autoscale::Mem::Low: 0
+  # Autoscale::Mem::High: 150
+
+  ## Uncomment to override the default autoscaling statistic
+  ## Options include Average, Maximum, or Minimum
+  # Autoscale::CPU::Statistic: Average
+  # Autoscale::Mem::Statistic: Average
+
+config-providers:
+  - name: "chamber"
+    type: "chamber"
+  - name: "tfe-stage"
+    type: "terraform"
+    options:
+      environment: "segment/stage"
+  - name: "tfe-prod"
+    type: "terraform"
+    options:
+      environment: "segment/production"
+
+# Uncomment to enable autodeploys for your environments
+# autodeploy:
+#   stage:
+#     branch: "staging"
+#   production:
+#     branch: "master"
+
+# Uncomment to make your service public facing
+# external:
+#   stage:
+#     fqdn: "oauth2-proxy.segment.build"
+#   production:
+#     fqdn: "oauth2-proxy.segment.com"
+
+# Uncomment and fill either list to add or drop capabilities.
+# - https://docs.docker.com/engine/reference/run/#additional-groups
+# capabilities:
+#   add:  [ ]
+#   drop: [ ]

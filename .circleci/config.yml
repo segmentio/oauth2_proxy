@@ -1,0 +1,16 @@
+version: 2
+jobs:
+  build:
+    working_directory: /go/src/github.com/segmentio/oauth2_proxy
+    docker:
+      - image: segment/circleci-golang:1.10
+    steps:
+      - checkout
+
+workflows:
+  version: 2
+  run:
+    jobs:
+      - build:
+          filters:
+            tags: { only: /.*/ }
