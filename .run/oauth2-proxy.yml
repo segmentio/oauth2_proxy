@@ -12,11 +12,11 @@ resources:
 
 ## Uncomment if you need to expose a port (with a load balancer)
 ## note: only one exposed port supported currently
-# expose:
-#   - name: http
-#     port: 3000
-#     proto: http
-#     health_check_path: /internal/health
+expose:
+  - name: http
+    port: 3000
+    proto: http
+    health_check_path: /ping
 
 count:
   min: 2
@@ -64,7 +64,7 @@ config-providers:
 
 # Uncomment to enable autodeploys for your environments
 # autodeploy:
-#   stage:
+#   stage
 #     branch: "staging"
 #   production:
 #     branch: "master"
