@@ -1,0 +1,16 @@
+## OAuth2 Proxy Config File
+skip_provider_button = true
+set_xauthrequest = true
+http_address = "0.0.0.0:3000"
+email_domains = [
+	"segment.com"
+]
+upstreams = [
+	"file://noop"
+]
+cookie_refresh = "1h"
+provider = "okta"
+
+cookie_secret = "{{ env "OAUTH2_PROXY_COOKIE_SECRET" }}"
+client_id = "{{ env "OAUTH2_PROXY_CLIENT_ID" }}"
+client_secret = "{{ env "OAUTH2_PROXY_CLIENT_SECRET" }}"
