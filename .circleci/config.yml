@@ -10,7 +10,7 @@ jobs:
       - run:
           command: |
             TAG=`git rev-parse --short=7 HEAD`
-            EXISTING_IMAGE=e6feea0
+            EXISTING_IMAGE=static
             eval "$(aws ecr get-login --no-include-email --region ${AWS_REGION})"
             docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/oauth2-proxy:$EXISTING_IMAGE
             docker tag $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/oauth2-proxy:$EXISTING_IMAGE $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/oauth2-proxy:$TAG

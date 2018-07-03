@@ -62,6 +62,15 @@ config-providers:
     options:
       environment: "segment/production"
 
+
+config:
+  dev:
+    OKTA_DOMAIN: "segment.okta.com"
+  stage:
+    OKTA_DOMAIN: "segment.okta.com"
+  production:
+    OKTA_DOMAIN: "segment.okta.com"
+
 # Uncomment to enable autodeploys for your environments
 # autodeploy:
 #   stage
