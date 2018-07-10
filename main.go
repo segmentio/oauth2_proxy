@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"runtime"
-	"strings"
 	"time"
 
 	"github.com/BurntSushi/toml"
@@ -89,46 +88,112 @@ func main() {
 		return
 	}
 
-	opts := NewOptions()
+	globalOpts := NewOptions()
 
-	cfg := make(EnvOptions)
+	globalCfg := make(EnvOptions)
 	if *config != "" {
-		_, err := toml.DecodeFile(*config, &cfg)
+		_, err := toml.DecodeFile(*config, &globalCfg)
 		if err != nil {
 			log.Fatalf("ERROR: failed to load config file %s - %s", *config, err)
 		}
 	}
-	cfg.LoadEnvForStruct(opts)
-	options.Resolve(opts, flagSet, cfg)
+	globalCfg.LoadEnvForStruct(globalOpts)
+	options.Resolve(globalOpts, flagSet, globalCfg)
 
-	err := opts.Validate()
+	err := globalOpts.Validate()
 	if err != nil {
 		log.Printf("%s", err)
 		os.Exit(1)
 	}
-	validator := NewValidator(opts.EmailDomains, opts.AuthenticatedEmailsFile)
-	oauthproxy := NewOAuthProxy(opts, validator)
 
-	if len(opts.EmailDomains) != 0 && opts.AuthenticatedEmailsFile == "" {
-		if len(opts.EmailDomains) > 1 {
-			oauthproxy.SignInMessage = fmt.Sprintf("Authenticate using one of the following domains: %v", strings.Join(opts.EmailDomains, ", "))
-		} else if opts.EmailDomains[0] != "*" {
-			oauthproxy.SignInMessage = fmt.Sprintf("Authenticate using %v", opts.EmailDomains[0])
+	// TODO: move to config
+	appCfgs := make(map[string]EnvOptions)
+
+	_, err = toml.Decode(`
+	["nirvine-app1.segment.com"]
+	skip_provider_button = true
+	set_xauthrequest = true
+	email_domains = [
+	"segment.com"
+	]
+	upstreams = [
+	"file://noop"
+	]
+	cookie_refresh = "5m"
+	provider = "okta"
+	okta_domain = "segment.oktapreview.com"
+	cookie_secret = "YXBwMXNlY3JldDAwMDAwMQ=="
+	# https://segment-admin.oktapreview.com/admin/app/oidc_client/instance/0oafor0pzyjZRBozQ0h7/#tab-general
+	client_id = "0oafor0pzyjZRBozQ0h7" # D
+	client_secret = "atNNFLhAtcVjkQ8LG88PHvLC68U6wYamQ6pO4Zmn"
+
+	# DEBUG Temp, must not be set for production
+	redirect_url = "https://nirvine-app1.segment.com:5000/oauth2/callback"
+
+	request_logging = true
+
+	["nirvine-app2.segment.com"]
+	skip_provider_button = true
+	set_xauthrequest = true
+	# http_address = "http://localhost:5000"
+	email_domains = [
+	"segment.com"
+	]
+	upstreams = [
+	"file://noop"
+	]
+	cookie_refresh = "5m"
+	provider = "okta"
+	okta_domain = "segment.oktapreview.com"
+	cookie_secret = "devsecretonly!!4"
+	# https://segment-admin.oktapreview.com/admin/app/oidc_client/client/0oafor4vn0Fea7wlH0h7#tab-general
+	client_id = "0oafor4ph0v3tod4j0h7" # D
+	client_secret = "doa64gMOiDeGjszhMF88XeJiJOiYJ7k5082RyfbK"
+
+	# DEBUG Temp, must not be set for production
+	redirect_url = "https://nirvine-app2.segment.com:5000/oauth2/callback"
+
+	request_logging = true
+	`, &appCfgs)
+	if err != nil {
+		log.Fatalf("ERROR: failed to load config: %s", err)
+	}
+	multiappproxy := MultiAppProxy{
+		AppToOAuthProxy: make(map[string]*OAuthProxy),
+	}
+	for domain, appCfg := range appCfgs {
+		appOpts := NewOptions()
+		appCfg.LoadEnvForStruct(appOpts)
+
+		options.Resolve(appOpts, flagSet, appCfg)
+
+		err = appOpts.Validate()
+		if err != nil {
+			log.Printf("%s", err)
+			os.Exit(1)
 		}
+		validator := NewValidator(appOpts.EmailDomains, appOpts.AuthenticatedEmailsFile)
+		oap := NewOAuthProxy(
+			appOpts,
+			validator,
+		)
+		log.Printf("INFO: added app; domain '%s' -> clientid '%s'", domain, appOpts.ClientID)
+		multiappproxy.AppToOAuthProxy[domain] = oap
 	}
 
-	if opts.HtpasswdFile != "" {
-		log.Printf("using htpasswd file %s", opts.HtpasswdFile)
-		oauthproxy.HtpasswdFile, err = NewHtpasswdFromFile(opts.HtpasswdFile)
-		oauthproxy.DisplayHtpasswdForm = opts.DisplayHtpasswdForm
-		if err != nil {
-			log.Fatalf("FATAL: unable to open %s %s", opts.HtpasswdFile, err)
-		}
+	if len(globalOpts.EmailDomains) != 0 && globalOpts.AuthenticatedEmailsFile == "" {
+		// TODO
+		log.Printf("Warn: global EmailDomains/AuthenticatedEmailsFile is required but does nothing")
+	}
+
+	if globalOpts.HtpasswdFile != "" {
+		// TODO
+		log.Printf("Warn: global HtpasswdFile is required but does nothing")
 	}
 
 	s := &Server{
-		Handler: LoggingHandler(os.Stdout, oauthproxy, opts.RequestLogging, opts.RequestLoggingFormat),
-		Opts:    opts,
+		Handler: LoggingHandler(os.Stdout, multiappproxy, globalOpts.RequestLogging, globalOpts.RequestLoggingFormat),
+		Opts:    globalOpts,
 	}
 	s.ListenAndServe()
 }
