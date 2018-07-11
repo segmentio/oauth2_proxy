@@ -20,14 +20,11 @@ import (
 
 // Configuration Options that can be set by Command Line Flag, or Config File
 type Options struct {
+	// TODO remove all flags
 	ProxyPrefix  string `flag:"proxy-prefix" cfg:"proxy-prefix"`
-	HttpAddress  string `flag:"http-address" cfg:"http_address"`
-	HttpsAddress string `flag:"https-address" cfg:"https_address"`
 	RedirectURL  string `flag:"redirect-url" cfg:"redirect_url"`
-	ClientID     string `flag:"client-id" cfg:"client_id" env:"OAUTH2_PROXY_CLIENT_ID"`
-	ClientSecret string `flag:"client-secret" cfg:"client_secret" env:"OAUTH2_PROXY_CLIENT_SECRET"`
-	TLSCertFile  string `flag:"tls-cert" cfg:"tls_cert_file"`
-	TLSKeyFile   string `flag:"tls-key" cfg:"tls_key_file"`
+	ClientID     string `flag:"client-id" cfg:"client_id"`
+	ClientSecret string `flag:"client-secret" cfg:"client_secret"`
 
 	AuthenticatedEmailsFile  string   `flag:"authenticated-emails-file" cfg:"authenticated_emails_file"`
 	AzureTenant              string   `flag:"azure-tenant" cfg:"azure_tenant"`
@@ -43,11 +40,11 @@ type Options struct {
 	CustomTemplatesDir       string   `flag:"custom-templates-dir" cfg:"custom_templates_dir"`
 	Footer                   string   `flag:"footer" cfg:"footer"`
 
-	CookieName     string        `flag:"cookie-name" cfg:"cookie_name" env:"OAUTH2_PROXY_COOKIE_NAME"`
-	CookieSecret   string        `flag:"cookie-secret" cfg:"cookie_secret" env:"OAUTH2_PROXY_COOKIE_SECRET"`
-	CookieDomain   string        `flag:"cookie-domain" cfg:"cookie_domain" env:"OAUTH2_PROXY_COOKIE_DOMAIN"`
-	CookieExpire   time.Duration `flag:"cookie-expire" cfg:"cookie_expire" env:"OAUTH2_PROXY_COOKIE_EXPIRE"`
-	CookieRefresh  time.Duration `flag:"cookie-refresh" cfg:"cookie_refresh" env:"OAUTH2_PROXY_COOKIE_REFRESH"`
+	CookieName     string        `flag:"cookie-name" cfg:"cookie_name"`
+	CookieSecret   string        `flag:"cookie-secret" cfg:"cookie_secret"`
+	CookieDomain   string        `flag:"cookie-domain" cfg:"cookie_domain"`
+	CookieExpire   time.Duration `flag:"cookie-expire" cfg:"cookie_expire"`
+	CookieRefresh  time.Duration `flag:"cookie-refresh" cfg:"cookie_refresh"`
 	CookieSecure   bool          `flag:"cookie-secure" cfg:"cookie_secure"`
 	CookieHttpOnly bool          `flag:"cookie-httponly" cfg:"cookie_httponly"`
 
@@ -75,10 +72,7 @@ type Options struct {
 	Scope             string `flag:"scope" cfg:"scope"`
 	ApprovalPrompt    string `flag:"approval-prompt" cfg:"approval_prompt"`
 
-	RequestLogging       bool   `flag:"request-logging" cfg:"request_logging"`
-	RequestLoggingFormat string `flag:"request-logging-format" cfg:"request_logging_format"`
-
-	SignatureKey string `flag:"signature-key" cfg:"signature_key" env:"OAUTH2_PROXY_SIGNATURE_KEY"`
+	SignatureKey string `flag:"signature-key" cfg:"signature_key"`
 
 	// internal values that are set after config validation
 	redirectURL   *url.URL
@@ -96,24 +90,20 @@ type SignatureData struct {
 
 func NewOptions() *Options {
 	return &Options{
-		ProxyPrefix:          "/oauth2",
-		HttpAddress:          "127.0.0.1:4180",
-		HttpsAddress:         ":443",
-		DisplayHtpasswdForm:  true,
-		CookieName:           "_oauth2_proxy",
-		CookieSecure:         true,
-		CookieHttpOnly:       true,
-		CookieExpire:         time.Duration(168) * time.Hour,
-		CookieRefresh:        time.Duration(0),
-		SetXAuthRequest:      false,
-		SkipAuthPreflight:    false,
-		PassBasicAuth:        true,
-		PassUserHeaders:      true,
-		PassAccessToken:      false,
-		PassHostHeader:       true,
-		ApprovalPrompt:       "force",
-		RequestLogging:       true,
-		RequestLoggingFormat: defaultRequestLoggingFormat,
+		ProxyPrefix:         "/oauth2",
+		DisplayHtpasswdForm: true,
+		CookieName:          "_oauth2_proxy",
+		CookieSecure:        true,
+		CookieHttpOnly:      true,
+		CookieExpire:        time.Duration(168) * time.Hour,
+		CookieRefresh:       time.Duration(0),
+		SetXAuthRequest:     false,
+		SkipAuthPreflight:   false,
+		PassBasicAuth:       true,
+		PassUserHeaders:     true,
+		PassAccessToken:     false,
+		PassHostHeader:      true,
+		ApprovalPrompt:      "force",
 	}
 }
 
