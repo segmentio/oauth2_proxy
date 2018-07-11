@@ -11,7 +11,7 @@ import (
 
 type Server struct {
 	Handler http.Handler
-	Opts    *Options
+	Opts    *MultiAppProxyOptions
 }
 
 func (s *Server) ListenAndServe() {

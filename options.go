@@ -20,6 +20,7 @@ import (
 
 // Configuration Options that can be set by Command Line Flag, or Config File
 type Options struct {
+	// TODO remove all flags
 	ProxyPrefix  string `flag:"proxy-prefix" cfg:"proxy-prefix"`
 	RedirectURL  string `flag:"redirect-url" cfg:"redirect_url"`
 	ClientID     string `flag:"client-id" cfg:"client_id"`
@@ -90,8 +91,6 @@ type SignatureData struct {
 func NewOptions() *Options {
 	return &Options{
 		ProxyPrefix:         "/oauth2",
-		HttpAddress:         "127.0.0.1:4180",
-		HttpsAddress:        ":443",
 		DisplayHtpasswdForm: true,
 		CookieName:          "_oauth2_proxy",
 		CookieSecure:        true,
